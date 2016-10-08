@@ -1,0 +1,883 @@
+#:import Animation kivy.animation.Animation
+#:import Color kivy.graphics.Color
+#:import random random.random
+#:import ut kivy.utils
+#:import Factory kivy.factory.Factory
+
+<DropShadow>:
+    canvas:
+        Color:
+            v: 1
+#        Color:
+#            hsv: random(), 1, 1
+#            a: 0.3
+#        Rectangle:
+#            size: self.size
+#            pos: self.pos
+        BorderImage:
+            source: 'data/images/shadow2.png'
+            border: (6,6,6,6)
+            size:(self.width + 10, self.height + 10)
+            pos: (self.x - 5, self.y - 5)
+
+<NoteOption@SpinnerOption>:
+    height: 40
+
+<KeyboardDropDown@DropDown>
+    base_note: 60
+    color: Color(1,1,1).rgba
+    canvas.after:
+        Color:
+            v: 1
+        BorderImage:
+            source: 'data/images/shadow2.png'
+            border: (6,6,6,6)
+            size:(self.width + 10, self.height + 10)
+            pos: (self.x - 5, self.y - 5)
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 2, 1, 0, 2
+        pos_hint: {'x': 0, 'y': 0.5}
+        size_hint: None, None
+        size: root.size
+        canvas:
+            Color:
+                v:0.18
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            size_hint: 1, None
+            height: 32
+            Button:
+                text: '-'
+                on_press: root.base_note -= 12
+            Label:
+                text: str(root.base_note)
+            Button:
+                text: '+'
+                on_press: root.base_note += 12
+            Button:
+                size_hint: 0.9, 1
+                text: u'\u00D7'
+                background_color: Color(1,0.5,0.9, mode='hsv').rgba
+                on_press: root.dismiss()
+        Keyboard:
+            orientation: 'vertical'
+            id: keyboard
+            padding: 2
+            base_note: root.base_note
+            color: root.color
+
+<MIDIIndicator>
+    size_hint_x: 0.075
+
+<Knob>
+    # color: [1,1,1,1]
+    show_marker: True
+    show_label: True
+    knobimg_bgcolor: [0.2, 0.2, 0.2, 1]
+    knobimg_color: [0,0,0,0]
+    knobimg_size: 0.67
+    min: 0
+    max: 128
+    value: 64
+    _angle: 180
+    # font_color: self.color
+    font_Size: '12sp'
+    # marker_color: self.color
+    # markeroff_color: Color(rgba=self.color, s=0.2, v=0.2).rgba
+    # markeroff_color: Color(self.color, c2.rgba)
+    markeroff_color: [0.22, 0.22, 0.22, 1]
+
+<Pad>:
+    state_image: self.background_normal if self.state == 'normal' else self.background_down
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            border: self.border
+            pos: self.pos
+            size: self.size
+            source: self.state_image
+        Color:
+            rgba: self.color
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+
+<Fader2@RelativeLayout>:
+    color: [1, 1, 1, 1]
+    vu: [0.5, 0.5]
+    Widget:
+        id: bg
+        canvas:
+            Color:
+                v: 0.3
+            BorderImage:
+                border: (18, 18, 18, 18)
+#                pos: self.pos
+                pos: self.center_x - 18, self.y
+                size: self.size
+                source: 'atlas://data/images/defaulttheme/button'
+    Widget:
+        id: meter
+        canvas:
+            Color:
+                v: 1
+            BorderImage:
+                border: (18, 18, 18, 18)
+                pos: self.center_x - 18, self.y
+                size: self.width, max(18, root.height * root.vu[0])
+                source: 'atlas://data/images/defaulttheme/button'
+    Fader:
+        id: slider
+        color: root.color
+        min: 0
+        max: 1
+
+<-Fader>:
+    color: [1,1,1,1]
+    padding: 0
+#    canvas.before:
+#        Color:
+#            a: 0.3
+#        BorderImage:
+#            source: 'data/images/shadow2.png'
+#            border: (10,10,10,10)
+#            size:(self.width + 9, self.height + 9)
+#            pos: (self.center_x - 18 - 5, self.y - 5)
+    canvas:
+#        # BG
+#        Color:
+#            rgb: [x * 0.3 + 0.3 for x in self.color[:3]]
+#        BorderImage:
+#            border: (18, 18, 18, 18)
+#            pos: (self.center_x - 18, self.y)
+#            size: self.width, self.height - self.padding * 2
+#            source: 'atlas://data/images/defaulttheme/button'.format(self.orientation[0], '_disabled' if self.disabled else '')
+#            # source: 'atlas://data/images/defaulttheme/button_disabled'
+        # Fill
+        Color:
+            # rgb: (1 - self.value_pos[1] / self.height) if self.height else 1,( self.value_pos[1] / self.height) if self.height else 0, 0
+            # rgba: self.disabled_color if self.disabled else self.color
+#            rgba: Color(*self.color, v=1.5).rgba
+            rgba: [x * 1.5 for x in self.color[:3]] + [0.5, ]
+        BorderImage:
+            # border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
+            border: (18, 18, 18, 18)
+            pos: self.center_x - 18, self.y
+            size: self.width, max(18, self.value_normalized * self.height)
+            source: 'atlas://data/images/defaulttheme/button'.format(self.orientation[0], '_disabled' if self.disabled else '')
+        # Handle
+        Color:
+            rgba: [x * 2.5 for x in self.color]
+        BorderImage:
+            border: (18, 18, 18, 18)
+            pos: self.center_x - 18, self.y + self.value_normalized * (self.height - sp(20))
+            size: self.width, sp(20)
+            source: 'atlas://data/images/defaulttheme/button'.format(self.orientation[0], '_disabled' if self.disabled else '')
+
+        # Rectangle:
+            # pos: (self.center_x - 18, self.value_pos[1] - sp(8))
+            # pos: (self.center_x - 18, self.y + self.value_normalized * self.height - sp(8))
+            # size: (self.width, sp(8))
+
+        # Color:
+        #     rgba: Color(rgba=self.color, s=0.2, v=0.5).rgba
+        # Rectangle:
+        #     pos: self.center_x - 18 + 0, self.y + 0
+        #     size: (self.width, 1)
+        # Rectangle:
+        #     pos: self.center_x - 18 + 0, self.y + 0
+        #     size: (1, self.height)
+        # Rectangle:
+        #     pos: self.center_x - 18 + 0, self.y + self.height - 1
+        #     size: (self.width, 1)
+        # Rectangle:
+        #     pos: self.center_x - 18 + self.width - 1, self.y + 0
+        #     size: (1, self.height)
+
+
+<KeyboardKey>:
+    state_image: self.background_normal if self.state == 'normal' else self.background_down
+    orientation: 'vertical'
+    canvas.before:
+#        BorderImage:
+#            source: 'data/images/shadow2.png'
+#            border: (6,6,6,6)
+#            size:(self.width + 10, self.height + 10)
+#            pos: (self.x - 5, self.y - 5)
+        PushMatrix:
+        Translate:
+            x: self.width if self.orientation == 'horizontal' else 0
+            # y: self.height if self.orientation == 'horizontal' else 0
+        # Scale:
+        #     x: -1 if self.orientation == 'horizontal' else 1
+        #     y: -1 if self.orientation == 'horizontal' else 1
+        Rotate:
+            angle: 90 if self.orientation == 'horizontal' else 0
+            # origin: self.center
+            # origin: self.x + self.height/2, self.y + self.width/2
+            # origin: self.x + self.width, self.y + self.height
+            # origin: self.pos
+            origin: self.x, self.y
+    canvas:
+        Color:
+            # rgba: self.background_color
+            rgba: self.background_color if self.state == 'normal' else Color(*self.background_color, s=0.2, v=1.2).rgba
+        BorderImage:
+            border: self.border
+            pos: self.pos
+            size: self.size
+            size: (self.width, self.height) if self.orientation == 'vertical' else (self.height, self.width)
+            source: self.state_image
+        Color:
+            a: 1 if self.state == 'normal' else 0.5
+        BorderImage:
+            source: 'data/images/shadow2.png'
+            border: (6,6,6,6)
+            size:(self.width + 10, self.height + 10)
+            size: (self.width + 10, self.height + 10) if self.orientation == 'vertical' else (self.height + 10, self.width + 10)
+            pos: (self.x - 5, self.y - 5)
+    canvas.after:
+        PopMatrix:
+    Label:
+        font_size: 13
+        color: 1, 1, 1, 0.2 if root.state == 'normal' else 0.5
+        text: root.note_name
+#        text: root.note_name if root.orientation == 'vertical' else root.note_name[0:2] + '\n' + root.note_name[2]
+        size: (root.width, 40) if root.orientation == 'vertical' else (root.height, root.height)
+        pos: (root.x, root.y)
+#        halign: 'center'
+#        valign: 'middle'
+
+<Keyboard@RelativeLayout>:
+    orientation: 'horizontal'
+    base_note: 60
+    color: Color(random(),0.1,1, mode='hsv').rgba
+    padding: 4
+    BoxLayout:
+        orientation: root.orientation
+        # padding: root.padding, 0, 0, root.padding
+        padding: {'horizontal': (root.padding, 0, 0, root.padding), 'vertical': (0, root.padding, root.padding, 0)}[root.orientation]
+        spacing: root.padding
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 0
+                note: root.base_note + {'horizontal': 0, 'vertical': 11}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 2
+                note: root.base_note + {'horizontal': 2, 'vertical': 9}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 4
+                note: root.base_note + {'horizontal': 4, 'vertical': 7}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 5
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 7
+                note: root.base_note + {'horizontal': 7, 'vertical': 4}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 9
+                note: root.base_note + {'horizontal': 9, 'vertical': 2}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: root.color
+                note: root.base_note + 11
+                note: root.base_note + {'horizontal': 11, 'vertical': 0}[root.orientation]
+    BoxLayout:
+        orientation: root.orientation
+        spacing: root.padding
+        # size_hint: 1, 0.6
+        # pos_hint: {'y': 0.4}
+        size_hint: {'horizontal': (1, 0.6), 'vertical': (0.6, 1)}[root.orientation]
+        pos_hint: {'horizontal': {'y':0.4}, 'vertical': {'x': 0, 'y': 0}}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: Color(*root.color, v=0.75).rgba
+                # size_hint: 0.5, 1
+                # pos_hint: {'x':0.45}
+                size_hint: {'horizontal': (0.5, 1), 'vertical': (1, 0.5)}[root.orientation]
+                pos_hint: {'horizontal': {'x':0.45}, 'vertical': {'y': 0}}[root.orientation]
+                note: root.base_note + 1
+                note: root.base_note + {'horizontal': 1, 'vertical': 10}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: Color(*root.color, v=0.75).rgba
+                # size_hint: 0.5, 1
+                # pos_hint: {'x':0.2}
+                size_hint: {'horizontal': (0.5, 1), 'vertical': (1, 0.5)}[root.orientation]
+                pos_hint: {'horizontal': {'x':0.2}, 'vertical': {'y': 0.35}}[root.orientation]
+                note: root.base_note + 3
+                note: root.base_note + {'horizontal': 3, 'vertical': 8}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: Color(*root.color, v=0.75).rgba
+                # size_hint: 0.5, 1
+                # pos_hint: {'x':0.6}
+                size_hint: {'horizontal': (0.5, 1), 'vertical': (1, 0.5)}[root.orientation]
+                pos_hint: {'horizontal': {'x':0.6}, 'vertical': {'y': 0.6}}[root.orientation]
+                note: root.base_note + 6
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: Color(*root.color, v=0.75).rgba
+                # size_hint: 0.5, 1
+                # pos_hint: {'x':0.32}
+                size_hint: {'horizontal': (0.5, 1), 'vertical': (1, 0.5)}[root.orientation]
+                pos_hint: {'horizontal': {'x':0.32}, 'vertical': {'y': 0.2}}[root.orientation]
+                note: root.base_note + 8
+                note: root.base_note + {'horizontal': 8, 'vertical': 3}[root.orientation]
+        RelativeLayout:
+            KeyboardKey:
+                orientation: {'horizontal': 'vertical', 'vertical': 'horizontal'}[root.orientation]
+                background_color: Color(*root.color, v=0.75).rgba
+                # size_hint: 0.5, 1
+                # pos_hint: {'x':0.05}
+                size_hint: {'horizontal': (0.5, 1), 'vertical': (1, 0.5)}[root.orientation]
+                pos_hint: {'horizontal': {'x':0.05}, 'vertical': {'y': 0.5}}[root.orientation]
+                note: root.base_note + 10
+                note: root.base_note + {'horizontal': 10, 'vertical': 1}[root.orientation]
+
+
+<XYPad>:
+    canvas.before:
+        Color:
+            v: 1
+        BorderImage:
+            source: 'data/images/shadow2.png'
+            border: (6,6,6,6)
+            size:(self.width + 10, self.height + 10)
+            pos: (self.x - 5, self.y - 5)
+    canvas:
+        # Color:
+        #     v: 0.1
+        # Rectangle:
+        #     pos: self.pos
+        #     size: self.size
+        #     # source: "data/images/grid.gif"
+        #     # texture: app.texture
+        # BorderImage:
+        #     border: (18, 18, 18, 18)
+        #     pos: self.pos
+        #     size: self.size
+        #     source: 'atlas://data/images/defaulttheme/button'
+
+        Color:
+            # hsv: [b for a, b in zip(Color(*self.color).hsv, [1, 0.1, 10])]
+            rgb: Color(rgba=self.color, s=0.2, v=0.2).rgb
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+        Color:
+            rgba: self.color
+        Rectangle:
+            pos: self.x + 0, self.y + 0
+            size: (self.width, 1)
+        Rectangle:
+            pos: self.x + 0, self.y + 0
+            size: (1, self.height)
+        Rectangle:
+            pos: self.x + 0, self.y + self.height - 1
+            size: (self.width, 1)
+        Rectangle:
+            pos: self.x + self.width - 1, self.y + 0
+            size: (1, self.height)
+
+        Color:
+            rgba: Color(*self.color, a=0.5).rgba
+        Rectangle:
+            pos: (self.pad_x, self.y)
+            size: (1, self.height)
+        Rectangle:
+            pos: (self.x, self.pad_y)
+            size: (self.width, 1)
+
+        Color:
+            rgba: self.color
+        Ellipse:
+            pos: (self.pad_x - 8, self.pad_y - 8)
+            size: (16, 16)
+
+    # Image:
+    #     allow_stretch: True
+    #     keep_ratio: False
+    #     mipmap: False
+    #     size_hint: None, None
+    #     size: root.size
+    #     pos: root.pos
+    #     # source: 'data/images/grid.gif'
+    #     texture: app.texture
+
+
+
+<Channel@BoxLayout>
+    vu: [0, 0]
+#    on_vu: print(args)
+    color: [1, 1, 1, 1]
+    padding: 4
+    canvas.before:
+        Color:
+            v: 1
+        BorderImage:
+            source: 'data/images/shadow2.png'
+            border: (6,6,6,6)
+            size:(self.width + 10, self.height + 10)
+            pos: (self.x - 5, self.y - 5)
+    canvas:
+        Color:
+            # rgba: Color(*self.color, v=0.3).rgba
+            # rgba: Color(*root.color, s=0.3, v=0.5).rgba
+            rgba: [x * 0.3 for x in self.color[:3]] + [1,]
+            rgba: self.color
+        # Rectangle:
+        #     pos: self.pos
+        #     size: self.size
+
+        BorderImage:
+            border: (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            source: 'atlas://data/images/defaulttheme/button'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        Label:
+            text: 'Channel'
+            color: Color(*root.color, s=0.53, v=0.85).rgba
+        Label:
+            text: 'High'
+            color: Color(*root.color, s=0.7, v=0.4).rgba
+        Knob:
+            size: root.width/2 - root.padding[0] * 2, root.width/2 - root.padding[0] * 2
+            knobimg_bgcolor: Color(*root.color, s=0.8, v=0.28).rgba
+            marker_color: root.color
+            markeroff_color: Color(*root.color, s=0.5, v=0.2).rgba
+            font_color: root.color
+            pos_hint: {'center_x': 0.5}
+        Label:
+            text: 'Mid'
+            color: Color(*root.color, s=0.7, v=0.4).rgba
+        Knob:
+            size: root.width/2 - root.padding[0] * 2, root.width/2 - root.padding[0] * 2
+            knobimg_bgcolor: Color(*root.color, s=0.8, v=0.28).rgba
+            marker_color: root.color
+            markeroff_color: Color(*root.color, s=0.5, v=0.2).rgba
+            font_color: root.color
+            pos_hint: {'center_x': 0.5}
+        Label:
+            text: 'Low'
+            color: Color(*root.color, s=0.7, v=0.4).rgba
+        Knob:
+            size: root.width/2 - root.padding[0] * 2, root.width/2 - root.padding[0] * 2
+            knobimg_bgcolor: Color(*root.color, s=0.8, v=0.28).rgba
+            marker_color: root.color
+            markeroff_color: Color(*root.color, s=0.5, v=0.2).rgba
+            font_color: root.color
+            pos_hint: {'center_x': 0.5}
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 8
+        padding: 8
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: 1, 0.2
+            BoxLayout:
+                ToggleButton:
+                    text: 'M'
+                    background_color: [1, 0, 0, 1]
+                ToggleButton:
+                    text: 'S'
+                    background_color: [1, 1, 0, 1]
+            BoxLayout:
+                Button:
+                    background_color: root.color
+                Button:
+                    background_color: root.color
+            Button:
+                background_color: Color(rgba=root.color, v=1.5).rgba
+
+        Fader2:
+            id: fader
+            size_hint: 0.75, 1
+#            pos_hint: {'x': 0.125}
+#            color: root.color
+            color: Color(*root.color, a=0.4).rgba
+            value: 50
+
+#            RelativeLayout:
+#                id: meter
+#                canvas:
+#                    Color:
+#                        rgba: Color(*root.color, a=0.5).rgba
+#                    Rectangle:
+#                        size: self.parent.width, 0
+#                        pos: self.parent.center_x - 18, self.parent.y
+
+#            canvas:
+#                Color:
+#                    rgba: self.color
+#                Rectangle:
+#                    size: self.width, self.height * root.vu[0]
+#                    pos: self.center_x - 18, self.y
+
+        Label:
+            color: root.color
+            size_hint: 1, 0.1
+#            text: "%2.2f" % (root.vu[0], )
+            text: "%2.2f" % (root.ids.fader.ids.slider.value_normalized, )
+
+
+
+
+        # BoxLayout:
+            # size_hint: 0.9, 1
+            # pos_hint: {'center_x': 0.5}
+            # spacing: 4
+            # Fader:
+            #     color: root.color
+            #     value: 50
+            # Fader:
+            #     color: root.color
+            #     value: 50
+
+
+<SequencerSettings@ModalView>
+#                ModalView:
+    id: sequencer_settings
+    background_color: [0,0,0,0.18]
+    size_hint: 0.5, 0.5
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                size_hint: 0.5, 1
+                text: 'Pat Len. %d' % root.ids.pattern_length_slider.value
+            Slider:
+                value: app.sequencer.current_pattern.length
+                id: pattern_length_slider
+                orientation: 'horizontal'
+                min: 1
+                max: 33
+                on_value: app.sequencer.current_pattern.length = int(self.value)
+#                    Label:
+#                        text: 'Step Per Beat %d' % root.ids.step_per_beat_slider.value
+#                    Slider:
+#                        value: 4
+#                        id: step_per_beat_slider
+#                        orientation: 'horizontal'
+#                        min: 0
+#                        max: 16
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: "Rate {0:0.03f}".format(float(root.ids.patter_rate_slider.value))
+            Slider:
+                value: app.sequencer.current_pattern.rate
+                id: patter_rate_slider
+                orientation: 'horizontal'
+                min: 0.125
+                max: 4
+                step: 0.125
+                on_value: app.sequencer.current_pattern.rate = self.value
+
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: 'Note Len. %d%%' % root.ids.note_length_slider.value
+            Slider:
+                value: app.sequencer.note_length * 100
+                id: note_length_slider
+                orientation: 'horizontal'
+                min: 0
+                max: 200
+                on_value: app.sequencer.note_length = self.value / 100.0
+
+
+<TabPanel>:
+    grid0_wid: grid0.__self__
+    grid1_wid: grid1.__self__
+    grid2_wid: grid2.__self__
+    grid3_wid: grid3.__self__
+    grid4_wid: grid4.__self__
+
+    tab_pos: 'top_left'
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: 'Knobs'
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 20
+            GridLayout:
+                id: grid0
+                cols: 4
+                rows: 3
+                spacing: 16
+
+    TabbedPanelItem:
+        text: 'Faders'
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 20
+            GridLayout:
+                id: grid3
+                cols: 16
+                rows: 1
+                spacing: 8
+
+    TabbedPanelItem:
+        text: 'Sequencer'
+        BoxLayout:
+            id: sequencer
+            orientation: 'vertical'
+            padding: 10
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, None
+                height: 40
+                BoxLayout:
+                    id: seq_patterns
+                BoxLayout:
+                    size_hint: 0.2, 1
+                    orientation: 'horizontal'
+                    Button:
+                        text: 'Settings'
+    #                    on_press: self.parent.children[2].open()
+                        on_press: Factory.SequencerSettings().open()
+                    Button:
+                        id: clear_pattern
+                        text: 'Clear'
+                        background_color: [1, 0.7, 0.7, 1]
+                        on_press: app.sequencer.current_pattern.clear()
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    padding: 0
+                    spacing: 2
+                    id: grid1
+#                    GridLayout:
+#                        id: grid1
+#                        cols: 16
+#                        rows: 8
+#                        spacing: 2, 1
+
+
+    TabbedPanelItem:
+        text: 'Pads'
+        text: 'Pads'
+        BoxLayout:
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 20, 20, 0, 20
+                size_hint: 0.33, 1
+
+                GridLayout:
+                    id: chords
+                    size_hint: 1, 0.33
+                    cols: 4
+                    rows: 2
+                    ToggleButton:
+                        text: 'Maj'
+                        group: 'chord'
+                        scale: 'major_chord'
+                    ToggleButton:
+                        text: 'Min'
+                        group: 'chord'
+                        scale: 'minor_chord'
+                    ToggleButton:
+                        text: 'Maj7'
+                        group: 'chord'
+                        scale: 'major7th_chord'
+                    ToggleButton:
+                        text: 'Min7'
+                        group: 'chord'
+                        scale: 'minor7_chord'
+                    ToggleButton:
+                        text: '7'
+                        group: 'chord'
+                        scale: 'major7_chord'
+                    ToggleButton:
+                        text: 'sus2'
+                        group: 'chord'
+                        scale: 'sus2'
+                    ToggleButton:
+                        text: 'sus4'
+                        group: 'chord'
+                        scale: 'sus4'
+                    ToggleButton:
+                        text: 'dim'
+                        group: 'chord'
+                        scale: 'diminished'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: 1, None
+                    height: 40
+                    Button:
+                        text: '<'
+                        on_press: pads_keyboard.base_note -= 12
+                    Button:
+                        text: '>'
+                        on_press: pads_keyboard.base_note += 12
+                Keyboard:
+                    id: pads_keyboard
+                    base_note: 36
+                    orientation: 'vertical'
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                BoxLayout:
+                    padding: 4
+                    size_hint: 0.8, 0.1
+                    pos_hint: {'center_x': 0.5}
+                    Spinner:
+                        size_hint: 0.3, 1
+                        id: pads_key
+                        text: "C"
+                        values: ['C', 'C#', 'D', 'D#', 'E', 'F' , 'F#', 'G', 'G#', 'A', 'A#', 'B']
+                    Spinner:
+                        size_hint: 0.3, 1
+                        id: pads_octave
+                        text: "4"
+                        values: [str(i) for i in range(8)]
+                    Spinner:
+                        id: pads_scale
+                        text: "chromatic"
+                        values: app.scale_names
+                BoxLayout:
+                    padding: 20
+                    GridLayout:
+                        id: grid2
+                        # cols: 7
+                        # rows: 6
+#                        cols: 6
+#                        rows: 4
+                        cols: 4
+                        rows: 3
+                        spacing: 5
+
+    TabbedPanelItem:
+        text: 'XY-Pads'
+        BoxLayout:
+            padding: 20
+            GridLayout:
+                id: grid4
+                spacing: 16
+                cols: 4
+                rows: 2
+                XYPad:
+                    note: 66
+                    ccx: 50
+                    ccy: 51
+                XYPad:
+                    note: 68
+                    ccx: 52
+                    ccy: 53
+                XYPad:
+                    note: 70
+                    ccx: 54
+                    ccy: 55
+                XYPad:
+                    note: 60
+                    ccx: 56
+                    ccy: 57
+                XYPad:
+                    note: 62
+                    ccx: 50
+                    ccy: 51
+                XYPad:
+                    note: 69
+                    ccx: 50
+                    ccy: 51
+                XYPad:
+                    note: 73
+                    ccx: 50
+                    ccy: 51
+                XYPad:
+                    note: 75
+                    ccx: 50
+                    ccy: 51
+
+    TabbedPanelItem:
+        text: 'Keyboard'
+        BoxLayout:
+            orientation: 'horizontal'
+            BoxLayout:
+                size_hint: 0.1, 1
+                orientation: 'vertical'
+                BoxLayout:
+                    Slider:
+                        orientation: 'vertical'
+                        value: 50
+#                        on_touch_up: self.value_normalized = 0.5
+#                        on_touch_up: self.value = 50 if args[1].grab_current == self else self.value
+#                        on_touch_up: if args[1].grab_current == self: print(args)
+#                        on_touch_move: app.pitch_bend(self.value_normalized)
+                        on_value: app.pitch_bend(self.value_normalized)
+#                        on_touch_up: if args[1].grab_current == self: self.value_normalized = 0.5
+                        on_touch_up: if args[1].grab_current == self: Animation(value_normalized=0.5, duration=0.5, t='out_elastic').start(self)
+                BoxLayout:
+                    Slider:
+                        orientation: 'vertical'
+                        value: 50
+                        on_value: app.cc(1, int(self.value_normalized * 127))
+                    Slider:
+                        orientation: 'vertical'
+                        value: 50
+                        on_value: app.cc(11, int(self.value_normalized * 127))
+            GridLayout:
+                id: keyboards
+                cols: 2
+                rows: 2
+                Keyboard:
+                    base_note: 48
+                Keyboard:
+                    base_note: 60
+                Keyboard:
+                    base_note: 72
+                Keyboard:
+                    base_note: 84
+
+    TabbedPanelItem:
+        text: 'Mixer'
+        BoxLayout:
+            id: mixer
+            padding: 20
+            spacing: 8
+            Channel:
+                color: Color(random(), 1, 1, mode='hsv').rgba
+            Channel:
+                color: Color(random(), 1, 1, mode='hsv').rgba
+            Channel:
+                color: Color(random(), 1, 1, mode='hsv').rgba
+            Channel:
+                color: Color(random(), 1, 1, mode='hsv').rgba
+

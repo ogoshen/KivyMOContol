@@ -1,0 +1,8 @@
+[
+	{
+		"type": "options",
+		"title": "Device",
+		"section": "MIDI",
+		"key": "device"
+	}
+]
